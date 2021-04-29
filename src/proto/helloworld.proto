@@ -1,0 +1,9 @@
+// compile with protoc --proto_path=src/proto/ --python_out=hostsw/ helloworld.proto
+
+syntax = "proto3";
+
+message sayhello {
+  string greeting = 1;
+  uint32 n = 2;
+}
+

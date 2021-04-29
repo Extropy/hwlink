@@ -1,0 +1,140 @@
+syntax = "proto3";
+
+package hwlink;
+
+
+// Commands to the microcontroller from the host
+
+message gethwlinkid {
+  uint32 protocolversion = 1;
+}
+
+
+message setkeepaliverate {
+  double keepaliverate = 1; // milliseconds
+}
+
+
+message getcapabilities {
+  bool nofield = 1; // .. can I send an empty message?
+}
+
+message getbit {
+  uint32 bitnumber = 1;
+}
+
+
+message getADC {
+  uint32 analoginput = 1;
+}
+
+
+message getrawADC {
+  uint32 analoginput = 1;
+}
+
+
+message putDAC {
+  uint32 analogoutput = 1;
+  oneof DACValueType {
+    double analogvalue = 2;
+    bytes rawvalue = 3;
+  }
+}
+
+message pwmspectype { // used in putPWM
+  uint32 pwmrange = 1;
+  uint32 pwmvalue = 2;
+}
+
+message putPWM {
+  uint32 pwmoutput = 1;
+  oneof pwmspec {
+    double pwmratio = 2;     // Specify PWM as [0.0 .. 1.0]
+    pwmspectype pwmspec = 3; // Specify PWM as pwmvalue/pwmrange
+  }
+}
+
+
+message writei2c {
+  uint32 i2caddress = 1;
+  bytes writebuffer = 2;
+}
+
+
+message readi2c {
+  uint32 i2caddress = 1;
+  bytes readbuffer = 2;
+}
+
+message writereadi2c {
+  uint32 i2caddress = 1;
+  bytes writebuffer = 2;
+  bytes readbuffer = 2;
+}  
+
+
+
+// Responses from the microcontroller to the host
+
+message hwlinkid {
+  uint32 firmwareversion = 1;
+  uint32 protocolversion = 2;
+  uint64 serialnumber = 3;
+}
+
+
+message keepalive {
+  uint64 count = 1;
+}
+
+
+message capabilities {         // response to getcapabilities
+  repeated uint32 digitialout; // list of digital output pins available
+  repeated uint32 digitalin;   // list of digital input pins available
+  repeated uint32 analogout;   // list of analog outputs (DAC) available
+  repeated uint32 analogin;    // list of analog inputs (ADC) avaialble
+  repeated uint32 pwmout;      // list of pwm outputs available
+}
+
+message error {
+  enum errorsourcetype {
+    NA = 0;
+    getbit = 1;
+    getADC = 2;
+    putDAC = 3;
+    putPWM = 4;
+  }
+  errorsourcetype errorsource = 1;
+  int32 errorcode = 2;
+  string errormessage = 3;
+  enum errorleveltype {
+    NA = 0;
+    fatal = 1;
+    warn = 2;
+    info = 3;
+    debug1 = 4;
+    debug2 = 5;
+    debug3 = 6;
+  }
+  errorleveltype errorlevel = 4;
+}
+
+message bitvalue { // response to getBit
+  uint32 bitnumber = 1;
+  bool bitvalue;
+}
+
+
+message analogvalue { // response to getADC
+  uint32 analoginput = 1;
+  double analogvalue = 2;
+}
+
+
+message analograwvalue { // response to getADCraw
+  uint32 analoginput = 1;
+  bytes analogvalue = 2;
+}
+
+
