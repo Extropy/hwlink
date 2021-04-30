@@ -7,6 +7,14 @@ m = helloworld_pb2.sayhello()
 m.greeting = "Hello, proto-world"
 m.n = 5
 
+<<<<<<< HEAD
+<<<<<<< HEAD
+=======
+print(m)
+>>>>>>> f379dc5... Initial proto buffer tests
+=======
+print(m)
+>>>>>>> f379dc5... Initial proto buffer tests
 f = open("hellotest.dat","wb")
 f.write(m.SerializeToString())
 f.close()
