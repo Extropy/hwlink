@@ -7,7 +7,6 @@ m = helloworld_pb2.sayhello()
 m.greeting = "Hello, proto-world"
 m.n = 5
 
-print(m)
 f = open("hellotest.dat","wb")
 f.write(m.SerializeToString())
 f.close()
