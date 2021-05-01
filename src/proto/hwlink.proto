@@ -1,140 +1,56 @@
+// compile with protoc --proto_path=src/proto/ --python_out=hostsw/ hwlink.proto
+//              protoc --proto_path=src/proto/ --cpp_out=src/ hwlink.proto
 syntax = "proto3";
 
 package hwlink;
 
-
-// Commands to the microcontroller from the host
-
-message gethwlinkid {
-  uint32 protocolversion = 1;
+message digitalin {                     // coap endpont getdigitalin, streamdigitalin
+  uint32 bitnumber = 1;                 // required for request and reponse
+  bool bitvalue = 2;                    // required for response
+  string streamdigitalinendpoint = 3;   // required for streamdigitalin
+  bool startdigitalinstream = 4;        // optional for streamdigitalin, default = true, false = stop stream
 }
 
-
-message setkeepaliverate {
-  double keepaliverate = 1; // milliseconds
+message digitalout {                    // coap endpoint setdigitalout - no response
+  uint32 bitnumber = 1;                 // required for request
+  bool bitvalue = 2;                    // required for request  
 }
 
-
-message getcapabilities {
-  bool nofield = 1; // .. can I send an empty message?
+message analogin {                      // coap endpoint getanalogin, streamanalogin
+  uint32 analoginnumber = 1;            // required for request and response
+  double calibratedanaloginvalue = 2;   // required for response if !requestrawanalogin
+  uint64 rawanaloginvalue = 3;          // required for response if requestrawanalogin
+  bool requestrawanalogin = 4;          // not required, default = false
+  string streamanaloginendpoint = 5;    // required for streamanalogin
+  bool startanaloginstream = 6;         // optional for streamdigitalin, default = true, false = stop stream
 }
 
-message getbit {
-  uint32 bitnumber = 1;
+message analogout {                     // coap endpoint setanalogout - no response
+  uint32 analogoutnumber = 1;           // required for request
+  double calibratedanalogoutvalue = 2;  // required for request if !setrawanalogoutvalue
+  uint64 rawanalogoutvalue = 3;         // required for request if setrawanalogoutvalue
 }
 
-
-message getADC {
-  uint32 analoginput = 1;
+message pwmout {                        // coap endpoint setpwmout - no response
+  uint32 pwnoutnumber = 1;              // requried for request
+  double relativepwmvalue = 2;          // required for request if !setaltpwmspec
+  uint64 pwmrange = 3;                  // required for request if setaltpwmspec
+  uint64 pwmon = 4;                     // required for request if setaltpwmspec
+  bool setaltpwmspec = 5;               // optional for request, default = false
 }
 
-
-message getrawADC {
-  uint32 analoginput = 1;
+message i2cdata {                       // coap endpoint readi2c, writei2c, readwritei2c, streami2c
+  uint32 i2caddress = 1;                // required for request and response
+  uint32 i2cnbytes = 2;                 // required for readi2c, writereadi2c request, readi2c, writereadi2c response
+  bytes i2cdata = 3;                    // required for writei2c, writereadi2c request, readi2c, writereadi2c response
+  string streami2cendpoint = 4;         // required for streami2c
+  bool starti2cstream = 5;              // optional for streami2c, default = true, false = stop stream
 }
 
-
-message putDAC {
-  uint32 analogoutput = 1;
-  oneof DACValueType {
-    double analogvalue = 2;
-    bytes rawvalue = 3;
-  }
+message spidata {                       // coap endpoint readspi, writespi, readwritespi, streamspi
+  uint32 spichipselect = 1;             // required for request and response
+  uint32 spinbytes = 2;                 // required for readspi, writereadspi request, readspi, writereadspi response
+  bytes spidata = 3;                    // required for writespi, writereadspi request, readspi, writereadspi response
+  string streamspiendpoint = 4;         // required for streamspi
+  bool startspistream = 5;              // optional for streamspi, default = true, false = stop stream
 }
-
-message pwmspectype { // used in putPWM
-  uint32 pwmrange = 1;
-  uint32 pwmvalue = 2;
-}
-
-message putPWM {
-  uint32 pwmoutput = 1;
-  oneof pwmspec {
-    double pwmratio = 2;     // Specify PWM as [0.0 .. 1.0]
-    pwmspectype pwmspec = 3; // Specify PWM as pwmvalue/pwmrange
-  }
-}
-
-
-message writei2c {
-  uint32 i2caddress = 1;
-  bytes writebuffer = 2;
-}
-
-
-message readi2c {
-  uint32 i2caddress = 1;
-  bytes readbuffer = 2;
-}
-
-message writereadi2c {
-  uint32 i2caddress = 1;
-  bytes writebuffer = 2;
-  bytes readbuffer = 2;
-}  
-
-
-
-// Responses from the microcontroller to the host
-
-message hwlinkid {
-  uint32 firmwareversion = 1;
-  uint32 protocolversion = 2;
-  uint64 serialnumber = 3;
-}
-
-
-message keepalive {
-  uint64 count = 1;
-}
-
-
-message capabilities {         // response to getcapabilities
-  repeated uint32 digitialout; // list of digital output pins available
-  repeated uint32 digitalin;   // list of digital input pins available
-  repeated uint32 analogout;   // list of analog outputs (DAC) available
-  repeated uint32 analogin;    // list of analog inputs (ADC) avaialble
-  repeated uint32 pwmout;      // list of pwm outputs available
-}
-
-message error {
-  enum errorsourcetype {
-    NA = 0;
-    getbit = 1;
-    getADC = 2;
-    putDAC = 3;
-    putPWM = 4;
-  }
-  errorsourcetype errorsource = 1;
-  int32 errorcode = 2;
-  string errormessage = 3;
-  enum errorleveltype {
-    NA = 0;
-    fatal = 1;
-    warn = 2;
-    info = 3;
-    debug1 = 4;
-    debug2 = 5;
-    debug3 = 6;
-  }
-  errorleveltype errorlevel = 4;
-}
-
-message bitvalue { // response to getBit
-  uint32 bitnumber = 1;
-  bool bitvalue;
-}
-
-
-message analogvalue { // response to getADC
-  uint32 analoginput = 1;
-  double analogvalue = 2;
-}
-
-
-message analograwvalue { // response to getADCraw
-  uint32 analoginput = 1;
-  bytes analogvalue = 2;
-}
-
-
